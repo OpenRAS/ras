@@ -1,0 +1,6 @@
+[submodule "deps/scrap"]
+	path = deps/scrap
+	url = https://github.com/OpenRAS/scrap.git
+[submodule "deps/enigo"]
+	path = deps/enigo
+	url = https://github.com/OpenRAS/enigo.git

@@ -1,0 +1,32 @@
+[package]
+name = "ras-server"
+version = "0.1.0"
+authors = ["xuty <xty50337@hotmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Mutex
+parking_lot = "0.11.1"
+
+# Async utils
+futures = "0.3"
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1.7"
+
+# Http
+warp = "0.3"
+
+# Serialize
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Screen capture
+scrap = { path="../deps/scrap" }
+
+# Video encode & decode
+codec = { path="../ras-codec" }
+
+# Input simulation
+enigo = { path="../deps/enigo" }

@@ -1,0 +1,19 @@
+[package]
+name = "app_template"
+version = "0.1.0"
+authors = ["Matej Knopp <matej.knopp@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+cargo-emit = "0.1"
+nativeshell_build = "0.1.5"
+
+[dependencies]
+nativeshell = { git="https://github.com/nativeshell/nativeshell/", branch="external_texture", package="nativeshell" }
+env_logger = "0.8.3"
+
+libvpx = "0.1.1"
+env-libvpx-sys = "5.1.0"
+dcv-color-primitives = "0.2.0"
