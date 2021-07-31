@@ -1,9 +1,9 @@
 mod message;
 mod worker;
 
-use std::time::Duration;
+use std::{sync::mpsc, thread, time::Duration};
 
-use enigo::{Enigo, MouseControllable};
+use enigo::{Enigo, KeyboardControllable, MouseControllable};
 use futures::{stream::SplitSink, FutureExt, SinkExt, StreamExt};
 
 use tokio::time;
@@ -14,6 +14,12 @@ use worker::CaptureWorker;
 use crate::message::RasMessage;
 
 fn main() {
+    // tokio::runtime::Builder::new_current_thread()
+    //     .enable_all()
+    //     .build()
+    //     .unwrap()
+    //     .block_on(async_main())
+
     tokio::runtime::Runtime::new()
         .unwrap()
         .block_on(async_main())
@@ -27,7 +33,7 @@ async fn async_main() {
         .map(|ws: ws::Ws| ws.on_upgrade(|ws| on_connect_desktop(ws)));
 
     let routes = index_route.or(echo_route);
-    warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+    warp::serve(routes).run(([0, 0, 0, 0], 3030)).await;
 }
 
 async fn on_connect_desktop(socket: ws::WebSocket) {
@@ -35,48 +41,22 @@ async fn on_connect_desktop(socket: ws::WebSocket) {
 
     let capture_task = tokio::spawn(desktop_capture_task(ws_tx));
 
-    let mut enigo = Enigo::new();
+    let (enigo_tx, enigo_rx) = mpsc::channel::<RasMessage>();
+    thread::spawn(move || enigo_thread(enigo_rx));
 
     while let Some(message) = ws_rx.next().await {
-        dbg!(&message);
+        // dbg!(&message);
 
         match message {
             Ok(message) => {
                 if message.is_close() {
                     capture_task.abort();
+                    break;
                 }
 
                 if message.is_text() {
                     let message = RasMessage::from_str(message.to_str().unwrap());
-                    match message {
-                        RasMessage::MouseMove { x, y } => {
-                            enigo.mouse_move_to(x, y);
-                        }
-                        RasMessage::MouseUp { button } => {
-                            if let Some(button) = map_button_type(button) {
-                                enigo.mouse_up(button);
-                            }
-                        }
-                        RasMessage::MouseDown { button } => {
-                            if let Some(button) = map_button_type(button) {
-                                enigo.mouse_down(button);
-                            }
-                        }
-                        RasMessage::MouseClick { button } => {
-                            if let Some(button) = map_button_type(button) {
-                                enigo.mouse_click(button);
-                            }
-                        }
-                        RasMessage::MouseScrollX { offset } => {
-                            enigo.mouse_scroll_x(offset);
-                        }
-                        RasMessage::MouseScrollY { offset } => {
-                            enigo.mouse_scroll_y(offset);
-                        }
-                        _ => {
-                            eprintln!("bad message: {:?}", message);
-                        }
-                    }
+                    enigo_tx.send(message).unwrap();
                 }
             }
             Err(e) => {
@@ -128,6 +108,55 @@ async fn desktop_capture_task(mut tx: SplitSink<ws::WebSocket, ws::Message>) {
                 for chunk in chunks {
                     tx.send(ws::Message::binary(chunk)).await.unwrap();
                 }
+            }
+        }
+    }
+}
+
+fn enigo_thread(rx: mpsc::Receiver<RasMessage>) {
+    let mut enigo = Enigo::new();
+
+    while let Ok(message) = rx.recv() {
+        match message {
+            RasMessage::MouseMove { x, y } => {
+                enigo.mouse_move_to(x, y);
+            }
+            RasMessage::MouseUp { button } => {
+                if let Some(button) = map_button_type(button) {
+                    enigo.mouse_up(button);
+                }
+            }
+            RasMessage::MouseDown { button } => {
+                if let Some(button) = map_button_type(button) {
+                    enigo.mouse_down(button);
+                }
+            }
+            RasMessage::MouseClick { button } => {
+                if let Some(button) = map_button_type(button) {
+                    enigo.mouse_click(button);
+                }
+            }
+            RasMessage::MouseScroll { offset_x, offset_y } => {
+                if offset_x != 0 {
+                    enigo.mouse_scroll_x(offset_x);
+                }
+
+                if offset_y != 0 {
+                    enigo.mouse_scroll_y(offset_y);
+                }
+            }
+            RasMessage::KeyCharUp { char } => {
+                if let Some(char) = char::from_u32(char) {
+                    enigo.key_up(enigo::Key::Layout(char));
+                }
+            }
+            RasMessage::KeyCharDown { char } => {
+                if let Some(char) = char::from_u32(char) {
+                    enigo.key_down(enigo::Key::Layout(char));
+                }
+            }
+            _ => {
+                eprintln!("bad message: {:?}", message);
             }
         }
     }

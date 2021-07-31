@@ -125,8 +125,9 @@ impl VpxEncoder {
         c.rc_end_usage = vpx_rc_mode::VPX_CBR;
         // c.kf_min_dist = 0;
         // c.kf_max_dist = 999999;
-        c.kf_mode = vpx_kf_mode::VPX_KF_DISABLED; // reduce bandwidth a lot
-
+        // c.kf_mode = vpx_kf_mode::VPX_KF_DISABLED; // reduce bandwidth a lot
+        // vpx_kf_mode::
+        
         /*
         VPX encoder支持two-pass encode，这是为了rate control的。
         对于两遍编码，就是需要整个编码过程做两次，第一次会得到一些新的控制参数来进行第二遍的编码，

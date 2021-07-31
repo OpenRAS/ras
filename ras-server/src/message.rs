@@ -44,16 +44,24 @@ pub enum RasMessage {
         button: String,
     },
 
-    #[serde(rename = "msx")]
-    MouseScrollX {
-        #[serde(rename = "o")]
-        offset: i32,
+    #[serde(rename = "ms")]
+    MouseScroll {
+        #[serde(rename = "x")]
+        offset_x: i32,
+        #[serde(rename = "y")]
+        offset_y: i32,
     },
 
-    #[serde(rename = "msy")]
-    MouseScrollY {
-        #[serde(rename = "o")]
-        offset: i32,
+    #[serde(rename = "kcu")]
+    KeyCharUp {
+        #[serde(rename = "c")]
+        char: u32,
+    },
+
+    #[serde(rename = "kcd")]
+    KeyCharDown {
+        #[serde(rename = "c")]
+        char: u32,
     },
 }
 
