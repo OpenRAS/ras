@@ -133,47 +133,53 @@ class _DesktopWindowState extends State<DesktopWindow> {
 
     final offset = getRemoteOffset(localOffset, localSize, remoteSize);
 
-    final message = proto.MouseMove(
-      x: offset.dx.round(),
-      y: offset.dy.round(),
-    );
+    final message = proto.Message.create()
+      ..mouseMove = proto.MouseMove(
+        x: offset.dx.round(),
+        y: offset.dy.round(),
+      );
 
-    connection.sendMessage(message.writeToBuffer());
+    connection.sendMessage(message);
   }
 
   void onPointerUp(int buttonId) {
     final button = mapButtonType(buttonId);
-    final message = proto.MouseUp(button: button);
-    connection.sendMessage(message.writeToBuffer());
+    final message = proto.Message.create()
+      ..mouseUp = proto.MouseUp(button: button);
+    connection.sendMessage(message);
   }
 
   void onPointerDown(int buttonId) {
     final button = mapButtonType(buttonId);
-    final message = proto.MouseDown(button: button);
-    connection.sendMessage(message.writeToBuffer());
+    final message = proto.Message.create()
+      ..mouseDown = proto.MouseDown(button: button);
+    connection.sendMessage(message);
   }
 
   void onPointerScroll(Offset delta) {
-    final message = proto.MouseScroll(
-      dx: (delta.dx / 2).round(),
-      dy: (delta.dy / 2).round(),
-    );
-    connection.sendMessage(message.writeToBuffer());
+    final message = proto.Message.create()
+      ..mouseScroll = proto.MouseScroll(
+        dx: (delta.dx / 2).round(),
+        dy: (delta.dy / 2).round(),
+      );
+    connection.sendMessage(message);
   }
 
   void onKeyUp(RawKeyUpEvent event) {
     final char = event.character;
     if (char != null) {
-      final message = proto.KeyUp(char: char.codeUnitAt(0));
-      connection.sendMessage(message.writeToBuffer());
+      final message = proto.Message.create()
+        ..keyUp = proto.KeyUp(char: char.codeUnitAt(0));
+      connection.sendMessage(message);
     }
   }
 
   void onKeyDown(RawKeyDownEvent event) {
     final char = event.character;
     if (char != null) {
-      final message = proto.KeyDown(char: char.codeUnitAt(0));
-      connection.sendMessage(message.writeToBuffer());
+      final message = proto.Message.create()
+        ..keyDown = proto.KeyDown(char: char.codeUnitAt(0));
+      connection.sendMessage(message);
     }
   }
 }
@@ -260,8 +266,8 @@ class DesktopConnection {
     state.value = DesktopConnectionState.aborted;
   }
 
-  void sendMessage(Uint8List message) {
-    channel.sink.add(message);
+  void sendMessage(proto.Message message) {
+    channel.sink.add(message.writeToBuffer());
   }
 }
 

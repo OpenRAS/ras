@@ -145,7 +145,7 @@ const KeyUp$json = const {
   '1': 'KeyUp',
   '2': const [
     const {'1': 'key', '3': 1, '4': 1, '5': 14, '6': '.ras.Key', '9': 0, '10': 'key'},
-    const {'1': 'char', '3': 2, '4': 1, '5': 5, '9': 0, '10': 'char'},
+    const {'1': 'char', '3': 2, '4': 1, '5': 13, '9': 0, '10': 'char'},
   ],
   '8': const [
     const {'1': 'union'},
@@ -153,13 +153,13 @@ const KeyUp$json = const {
 };
 
 /// Descriptor for `KeyUp`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List keyUpDescriptor = $convert.base64Decode('CgVLZXlVcBIcCgNrZXkYASABKA4yCC5yYXMuS2V5SABSA2tleRIUCgRjaGFyGAIgASgFSABSBGNoYXJCBwoFdW5pb24=');
+final $typed_data.Uint8List keyUpDescriptor = $convert.base64Decode('CgVLZXlVcBIcCgNrZXkYASABKA4yCC5yYXMuS2V5SABSA2tleRIUCgRjaGFyGAIgASgNSABSBGNoYXJCBwoFdW5pb24=');
 @$core.Deprecated('Use keyDownDescriptor instead')
 const KeyDown$json = const {
   '1': 'KeyDown',
   '2': const [
     const {'1': 'key', '3': 1, '4': 1, '5': 14, '6': '.ras.Key', '9': 0, '10': 'key'},
-    const {'1': 'char', '3': 2, '4': 1, '5': 5, '9': 0, '10': 'char'},
+    const {'1': 'char', '3': 2, '4': 1, '5': 13, '9': 0, '10': 'char'},
   ],
   '8': const [
     const {'1': 'union'},
@@ -167,7 +167,7 @@ const KeyDown$json = const {
 };
 
 /// Descriptor for `KeyDown`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List keyDownDescriptor = $convert.base64Decode('CgdLZXlEb3duEhwKA2tleRgBIAEoDjIILnJhcy5LZXlIAFIDa2V5EhQKBGNoYXIYAiABKAVIAFIEY2hhckIHCgV1bmlvbg==');
+final $typed_data.Uint8List keyDownDescriptor = $convert.base64Decode('CgdLZXlEb3duEhwKA2tleRgBIAEoDjIILnJhcy5LZXlIAFIDa2V5EhQKBGNoYXIYAiABKA1IAFIEY2hhckIHCgV1bmlvbg==');
 @$core.Deprecated('Use messageDescriptor instead')
 const Message$json = const {
   '1': 'Message',
@@ -179,6 +179,8 @@ const Message$json = const {
     const {'1': 'mouse_down', '3': 5, '4': 1, '5': 11, '6': '.ras.MouseDown', '9': 0, '10': 'mouseDown'},
     const {'1': 'mouse_click', '3': 6, '4': 1, '5': 11, '6': '.ras.MouseClick', '9': 0, '10': 'mouseClick'},
     const {'1': 'mouse_scroll', '3': 7, '4': 1, '5': 11, '6': '.ras.MouseScroll', '9': 0, '10': 'mouseScroll'},
+    const {'1': 'key_up', '3': 8, '4': 1, '5': 11, '6': '.ras.KeyUp', '9': 0, '10': 'keyUp'},
+    const {'1': 'key_down', '3': 9, '4': 1, '5': 11, '6': '.ras.KeyDown', '9': 0, '10': 'keyDown'},
   ],
   '8': const [
     const {'1': 'union'},
@@ -186,4 +188,4 @@ const Message$json = const {
 };
 
 /// Descriptor for `Message`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List messageDescriptor = $convert.base64Decode('CgdNZXNzYWdlEjIKC3ZpZGVvX2ZyYW1lGAEgASgLMg8ucmFzLlZpZGVvRnJhbWVIAFIKdmlkZW9GcmFtZRIvCgptb3VzZV9tb3ZlGAIgASgLMg4ucmFzLk1vdXNlTW92ZUgAUgltb3VzZU1vdmUSSAoTbW91c2VfbW92ZV9yZWxhdGl2ZRgDIAEoCzIWLnJhcy5Nb3VzZU1vdmVSZWxhdGl2ZUgAUhFtb3VzZU1vdmVSZWxhdGl2ZRIpCghtb3VzZV91cBgEIAEoCzIMLnJhcy5Nb3VzZVVwSABSB21vdXNlVXASLwoKbW91c2VfZG93bhgFIAEoCzIOLnJhcy5Nb3VzZURvd25IAFIJbW91c2VEb3duEjIKC21vdXNlX2NsaWNrGAYgASgLMg8ucmFzLk1vdXNlQ2xpY2tIAFIKbW91c2VDbGljaxI1Cgxtb3VzZV9zY3JvbGwYByABKAsyEC5yYXMuTW91c2VTY3JvbGxIAFILbW91c2VTY3JvbGxCBwoFdW5pb24=');
+final $typed_data.Uint8List messageDescriptor = $convert.base64Decode('CgdNZXNzYWdlEjIKC3ZpZGVvX2ZyYW1lGAEgASgLMg8ucmFzLlZpZGVvRnJhbWVIAFIKdmlkZW9GcmFtZRIvCgptb3VzZV9tb3ZlGAIgASgLMg4ucmFzLk1vdXNlTW92ZUgAUgltb3VzZU1vdmUSSAoTbW91c2VfbW92ZV9yZWxhdGl2ZRgDIAEoCzIWLnJhcy5Nb3VzZU1vdmVSZWxhdGl2ZUgAUhFtb3VzZU1vdmVSZWxhdGl2ZRIpCghtb3VzZV91cBgEIAEoCzIMLnJhcy5Nb3VzZVVwSABSB21vdXNlVXASLwoKbW91c2VfZG93bhgFIAEoCzIOLnJhcy5Nb3VzZURvd25IAFIJbW91c2VEb3duEjIKC21vdXNlX2NsaWNrGAYgASgLMg8ucmFzLk1vdXNlQ2xpY2tIAFIKbW91c2VDbGljaxI1Cgxtb3VzZV9zY3JvbGwYByABKAsyEC5yYXMuTW91c2VTY3JvbGxIAFILbW91c2VTY3JvbGwSIwoGa2V5X3VwGAggASgLMgoucmFzLktleVVwSABSBWtleVVwEikKCGtleV9kb3duGAkgASgLMgwucmFzLktleURvd25IAFIHa2V5RG93bkIHCgV1bmlvbg==');

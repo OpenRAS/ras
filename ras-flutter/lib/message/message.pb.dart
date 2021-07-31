@@ -427,7 +427,7 @@ class KeyUp extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'KeyUp', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ras'), createEmptyInstance: create)
     ..oo(0, [1, 2])
     ..e<Key>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'key', $pb.PbFieldType.OE, defaultOrMaker: Key.Alt, valueOf: Key.valueOf, enumValues: Key.values)
-    ..a<$core.int>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'char', $pb.PbFieldType.O3)
+    ..a<$core.int>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'char', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false
   ;
 
@@ -481,7 +481,7 @@ class KeyUp extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.int get char => $_getIZ(1);
   @$pb.TagNumber(2)
-  set char($core.int v) { $_setSignedInt32(1, v); }
+  set char($core.int v) { $_setUnsignedInt32(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasChar() => $_has(1);
   @$pb.TagNumber(2)
@@ -503,7 +503,7 @@ class KeyDown extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'KeyDown', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ras'), createEmptyInstance: create)
     ..oo(0, [1, 2])
     ..e<Key>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'key', $pb.PbFieldType.OE, defaultOrMaker: Key.Alt, valueOf: Key.valueOf, enumValues: Key.values)
-    ..a<$core.int>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'char', $pb.PbFieldType.O3)
+    ..a<$core.int>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'char', $pb.PbFieldType.OU3)
     ..hasRequiredFields = false
   ;
 
@@ -557,7 +557,7 @@ class KeyDown extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   $core.int get char => $_getIZ(1);
   @$pb.TagNumber(2)
-  set char($core.int v) { $_setSignedInt32(1, v); }
+  set char($core.int v) { $_setUnsignedInt32(1, v); }
   @$pb.TagNumber(2)
   $core.bool hasChar() => $_has(1);
   @$pb.TagNumber(2)
@@ -572,6 +572,8 @@ enum Message_Union {
   mouseDown, 
   mouseClick, 
   mouseScroll, 
+  keyUp, 
+  keyDown, 
   notSet
 }
 
@@ -584,10 +586,12 @@ class Message extends $pb.GeneratedMessage {
     5 : Message_Union.mouseDown,
     6 : Message_Union.mouseClick,
     7 : Message_Union.mouseScroll,
+    8 : Message_Union.keyUp,
+    9 : Message_Union.keyDown,
     0 : Message_Union.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'Message', package: const $pb.PackageName(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'ras'), createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9])
     ..aOM<VideoFrame>(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'videoFrame', subBuilder: VideoFrame.create)
     ..aOM<MouseMove>(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mouseMove', subBuilder: MouseMove.create)
     ..aOM<MouseMoveRelative>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mouseMoveRelative', subBuilder: MouseMoveRelative.create)
@@ -595,6 +599,8 @@ class Message extends $pb.GeneratedMessage {
     ..aOM<MouseDown>(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mouseDown', subBuilder: MouseDown.create)
     ..aOM<MouseClick>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mouseClick', subBuilder: MouseClick.create)
     ..aOM<MouseScroll>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'mouseScroll', subBuilder: MouseScroll.create)
+    ..aOM<KeyUp>(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'keyUp', subBuilder: KeyUp.create)
+    ..aOM<KeyDown>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'keyDown', subBuilder: KeyDown.create)
     ..hasRequiredFields = false
   ;
 
@@ -607,6 +613,8 @@ class Message extends $pb.GeneratedMessage {
     MouseDown? mouseDown,
     MouseClick? mouseClick,
     MouseScroll? mouseScroll,
+    KeyUp? keyUp,
+    KeyDown? keyDown,
   }) {
     final _result = create();
     if (videoFrame != null) {
@@ -629,6 +637,12 @@ class Message extends $pb.GeneratedMessage {
     }
     if (mouseScroll != null) {
       _result.mouseScroll = mouseScroll;
+    }
+    if (keyUp != null) {
+      _result.keyUp = keyUp;
+    }
+    if (keyDown != null) {
+      _result.keyDown = keyDown;
     }
     return _result;
   }
@@ -732,5 +746,27 @@ class Message extends $pb.GeneratedMessage {
   void clearMouseScroll() => clearField(7);
   @$pb.TagNumber(7)
   MouseScroll ensureMouseScroll() => $_ensure(6);
+
+  @$pb.TagNumber(8)
+  KeyUp get keyUp => $_getN(7);
+  @$pb.TagNumber(8)
+  set keyUp(KeyUp v) { setField(8, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasKeyUp() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearKeyUp() => clearField(8);
+  @$pb.TagNumber(8)
+  KeyUp ensureKeyUp() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  KeyDown get keyDown => $_getN(8);
+  @$pb.TagNumber(9)
+  set keyDown(KeyDown v) { setField(9, v); }
+  @$pb.TagNumber(9)
+  $core.bool hasKeyDown() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearKeyDown() => clearField(9);
+  @$pb.TagNumber(9)
+  KeyDown ensureKeyDown() => $_ensure(8);
 }
 
