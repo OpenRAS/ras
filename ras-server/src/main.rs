@@ -1,4 +1,4 @@
-mod message;
+// mod message;
 mod proto;
 mod worker;
 
@@ -125,30 +125,32 @@ fn message(union: proto::message::Union) -> Vec<u8> {
 }
 
 fn enigo_thread(rx: mpsc::Receiver<proto::Message>) {
+    use proto::message;
+
     let mut enigo = Enigo::new();
 
     while let Ok(message) = rx.recv() {
         let union = message.union.unwrap();
         match union {
-            proto::message::Union::MouseMove(message) => {
+            message::Union::MouseMove(message) => {
                 enigo.mouse_move_to(message.x as _, message.y as _);
             }
-            proto::message::Union::MouseUp(message) => {
+            message::Union::MouseUp(message) => {
                 if let Some(button) = map_button_type(message.button) {
                     enigo.mouse_up(button);
                 }
             }
-            proto::message::Union::MouseDown(message) => {
+            message::Union::MouseDown(message) => {
                 if let Some(button) = map_button_type(message.button) {
                     enigo.mouse_down(button);
                 }
             }
-            proto::message::Union::MouseClick(message) => {
+            message::Union::MouseClick(message) => {
                 if let Some(button) = map_button_type(message.button) {
                     enigo.mouse_click(button);
                 }
             }
-            proto::message::Union::MouseScroll(message) => {
+            message::Union::MouseScroll(message) => {
                 if message.dx != 0 {
                     enigo.mouse_scroll_x(message.dx);
                 }
@@ -157,7 +159,7 @@ fn enigo_thread(rx: mpsc::Receiver<proto::Message>) {
                     enigo.mouse_scroll_y(message.dy);
                 }
             }
-            proto::message::Union::KeyUp(message) => match message.union.unwrap() {
+            message::Union::KeyUp(message) => match message.union.unwrap() {
                 proto::key_up::Union::Char(char) => {
                     if let Some(char) = char::from_u32(char) {
                         enigo.key_up(enigo::Key::Layout(char));
@@ -165,7 +167,7 @@ fn enigo_thread(rx: mpsc::Receiver<proto::Message>) {
                 }
                 _ => {}
             },
-            proto::message::Union::KeyDown(message) => match message.union.unwrap() {
+            message::Union::KeyDown(message) => match message.union.unwrap() {
                 proto::key_down::Union::Char(char) => {
                     if let Some(char) = char::from_u32(char) {
                         enigo.key_down(enigo::Key::Layout(char));
