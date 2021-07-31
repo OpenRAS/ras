@@ -35,6 +35,8 @@ dependencies:
 
   json_annotation: ^4.1.0
 
+  protobuf: ^2.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

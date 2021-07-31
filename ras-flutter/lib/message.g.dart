@@ -1,66 +1,77 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+// // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'message.dart';
+// part of 'message.dart';
 
-// **************************************************************************
-// JsonSerializableGenerator
-// **************************************************************************
+// // **************************************************************************
+// // JsonSerializableGenerator
+// // **************************************************************************
 
-VideoFrame _$VideoFrameFromJson(Map<String, dynamic> json) {
-  return VideoFrame()
-    ..width = json['w'] as int
-    ..height = json['h'] as int
-    ..chunks = json['n'] as int;
-}
+// VideoFrame _$VideoFrameFromJson(Map<String, dynamic> json) {
+//   return VideoFrame()
+//     ..width = json['w'] as int
+//     ..height = json['h'] as int
+//     ..chunks = json['n'] as int;
+// }
 
-Map<String, dynamic> _$VideoFrameToJson(VideoFrame instance) =>
-    <String, dynamic>{
-      'w': instance.width,
-      'h': instance.height,
-      'n': instance.chunks,
-    };
+// Map<String, dynamic> _$VideoFrameToJson(VideoFrame instance) =>
+//     <String, dynamic>{
+//       'w': instance.width,
+//       'h': instance.height,
+//       'n': instance.chunks,
+//     };
 
-MouseMove _$MouseMoveFromJson(Map<String, dynamic> json) {
-  return MouseMove()
-    ..x = json['x'] as int
-    ..y = json['y'] as int;
-}
+// MouseMove _$MouseMoveFromJson(Map<String, dynamic> json) {
+//   return MouseMove()
+//     ..x = json['x'] as int
+//     ..y = json['y'] as int;
+// }
 
-Map<String, dynamic> _$MouseMoveToJson(MouseMove instance) => <String, dynamic>{
-      'x': instance.x,
-      'y': instance.y,
-    };
+// Map<String, dynamic> _$MouseMoveToJson(MouseMove instance) => <String, dynamic>{
+//       'x': instance.x,
+//       'y': instance.y,
+//     };
 
-MouseUp _$MouseUpFromJson(Map<String, dynamic> json) {
-  return MouseUp()..button = json['b'] as String;
-}
+// MouseUp _$MouseUpFromJson(Map<String, dynamic> json) {
+//   return MouseUp()..button = json['b'] as String;
+// }
 
-Map<String, dynamic> _$MouseUpToJson(MouseUp instance) => <String, dynamic>{
-      'b': instance.button,
-    };
+// Map<String, dynamic> _$MouseUpToJson(MouseUp instance) => <String, dynamic>{
+//       'b': instance.button,
+//     };
 
-MouseDown _$MouseDownFromJson(Map<String, dynamic> json) {
-  return MouseDown()..button = json['b'] as String;
-}
+// MouseDown _$MouseDownFromJson(Map<String, dynamic> json) {
+//   return MouseDown()..button = json['b'] as String;
+// }
 
-Map<String, dynamic> _$MouseDownToJson(MouseDown instance) => <String, dynamic>{
-      'b': instance.button,
-    };
+// Map<String, dynamic> _$MouseDownToJson(MouseDown instance) => <String, dynamic>{
+//       'b': instance.button,
+//     };
 
-MouseScrollX _$MouseScrollXFromJson(Map<String, dynamic> json) {
-  return MouseScrollX()..offset = json['o'] as int;
-}
+// MouseScroll _$MouseScrollFromJson(Map<String, dynamic> json) {
+//   return MouseScroll()
+//     ..x = json['x'] as int
+//     ..y = json['y'] as int;
+// }
 
-Map<String, dynamic> _$MouseScrollXToJson(MouseScrollX instance) =>
-    <String, dynamic>{
-      'o': instance.offset,
-    };
+// Map<String, dynamic> _$MouseScrollToJson(MouseScroll instance) =>
+//     <String, dynamic>{
+//       'x': instance.x,
+//       'y': instance.y,
+//     };
 
-MouseScrollY _$MouseScrollYFromJson(Map<String, dynamic> json) {
-  return MouseScrollY()..offset = json['o'] as int;
-}
+// KeyCharUp _$KeyCharUpFromJson(Map<String, dynamic> json) {
+//   return KeyCharUp()..char = json['c'] as int;
+// }
 
-Map<String, dynamic> _$MouseScrollYToJson(MouseScrollY instance) =>
-    <String, dynamic>{
-      'o': instance.offset,
-    };
+// Map<String, dynamic> _$KeyCharUpToJson(KeyCharUp instance) => <String, dynamic>{
+//       'c': instance.char,
+//     };
+
+// KeyCharDown _$KeyCharDownFromJson(Map<String, dynamic> json) {
+//   return KeyCharDown()..char = json['c'] as int;
+// }
+
+// Map<String, dynamic> _$KeyCharDownToJson(KeyCharDown instance) =>
+//     <String, dynamic>{
+//       'c': instance.char,
+//     };

@@ -17,6 +17,16 @@ To debug or hot reload dart code, start the `Flutter: Attach to Process` configu
 
 For more information go to [nativeshell.dev](https://nativeshell.dev).
 
+
+## Build
+
+```
+git submodule update --remote --recursive
+```
+
+```
+protoc -I=ras-proto --dart_out=ras-flutter/lib/message ./ras-proto/message.proto
+```
 ## References
 
 - [THE GIT SUBMODULE CHEAT SHEET](https://www.devroom.io/2020/03/09/the-git-submodule-cheat-sheet/)

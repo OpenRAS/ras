@@ -30,3 +30,11 @@ codec = { path="../ras-codec" }
 
 # Input simulation
 enigo = { path="../deps/enigo" }
+
+# Protocol buffer
+prost = "0.6"
+prost-types = "0.6"
+
+[build-dependencies]
+# Protocol buffer build
+prost-build = { version = "0.6" }

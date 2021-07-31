@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+package ras;
+
+message VideoFrame {
+    uint32 width = 1;
+    uint32 height = 2;
+    bytes data = 3;
+}
+
+message MouseMove {
+    uint32 x = 1;
+    uint32 y = 2;
+}
+
+message MouseMoveRelative {
+    int32 dx = 1;
+    int32 dy = 2;
+}
+
+enum MouseButton {
+    LEFT = 0;
+    MIDDLE = 1;
+    RIGHT = 2;
+    SCROLL_UP = 3;
+    SCROLL_DOWN = 4;
+    SCROLL_LEFT = 5;
+    SCROLL_RIGHT = 6;
+}
+
+message MouseUp {
+    MouseButton button = 1;
+}
+
+message MouseDown {
+    MouseButton button = 1;
+}
+
+message MouseClick {
+    MouseButton button = 1;
+}
+
+message MouseScroll {
+    int32 dx = 1;
+    int32 dy = 2;
+}
+
+enum Key {
+    Alt = 0;
+    Backspace = 1;
+    CapsLock = 2;
+    Control = 3;
+    Delete = 4;
+    DownArrow = 5;
+    End = 6;
+    Escape = 7;
+    F1 = 8;
+    F10 = 9;
+    F11 = 10;
+    F12 = 11;
+    F2 = 12;
+    F3 = 13;
+    F4 = 14;
+    F5 = 15;
+    F6 = 16;
+    F7 = 17;
+    F8 = 18;
+    F9 = 19;
+    Home = 20;
+    LeftArrow = 21;
+    Meta = 22;
+    Option = 23;
+    PageDown = 24;
+    PageUp = 25;
+    Return = 26;
+    RightArrow = 27;
+    Shift = 28;
+    Space = 29;
+    Tab = 30;
+    UpArrow = 31;
+}
+
+message KeyUp {
+    oneof union {
+        Key key = 1;
+        uint32 char = 2;
+    }
+}
+
+message KeyDown {
+    oneof union {
+        Key key = 1;
+        uint32 char = 2;
+    }
+}
+
+message Message {
+    oneof union {
+        VideoFrame video_frame = 1;
+        MouseMove mouse_move = 2;
+        MouseMoveRelative mouse_move_relative = 3;
+        MouseUp mouse_up = 4;
+        MouseDown mouse_down = 5;
+        MouseClick mouse_click = 6;
+        MouseScroll mouse_scroll = 7;
+        KeyUp key_up = 8;
+        KeyDown key_down = 9;
+    }
+}

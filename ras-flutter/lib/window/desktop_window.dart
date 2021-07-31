@@ -1,11 +1,10 @@
-import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:app_template/message.dart';
+import 'package:app_template/message/message.pb.dart' as proto;
 import 'package:app_template/vp9_player.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nativeshell/nativeshell.dart';
 import 'package:web_socket_channel/io.dart';
 
@@ -89,25 +88,33 @@ class _DesktopWindowState extends State<DesktopWindow> {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, contrains) {
-      return Listener(
-        child: Vp9PlayerView(player: player),
-        onPointerMove: (event) {
-          onPointerMove(event.position, contrains.biggest);
+      return Focus(
+        autofocus: true,
+        onKey: (focus, event) {
+          if (event is RawKeyUpEvent) onKeyUp(event);
+          if (event is RawKeyDownEvent) onKeyDown(event);
+          return KeyEventResult.handled;
         },
-        onPointerHover: (event) {
-          onPointerMove(event.position, contrains.biggest);
-        },
-        onPointerUp: (event) {
-          onPointerUp(event.buttons);
-        },
-        onPointerDown: (event) {
-          onPointerDown(event.buttons);
-        },
-        onPointerSignal: (event) {
-          if (event is PointerScrollEvent) {
-            onPointerScroll(event.scrollDelta);
-          }
-        },
+        child: Listener(
+          child: Vp9PlayerView(player: player),
+          onPointerMove: (event) {
+            onPointerMove(event.position, contrains.biggest);
+          },
+          onPointerHover: (event) {
+            onPointerMove(event.position, contrains.biggest);
+          },
+          onPointerUp: (event) {
+            onPointerUp(event.buttons);
+          },
+          onPointerDown: (event) {
+            onPointerDown(event.buttons);
+          },
+          onPointerSignal: (event) {
+            if (event is PointerScrollEvent) {
+              onPointerScroll(event.scrollDelta);
+            }
+          },
+        ),
       );
     });
   }
@@ -126,47 +133,61 @@ class _DesktopWindowState extends State<DesktopWindow> {
 
     final offset = getRemoteOffset(localOffset, localSize, remoteSize);
 
-    final message = MouseMove()
-      ..x = offset.dx.round()
-      ..y = offset.dy.round();
-    connection.sendMessage(message);
+    final message = proto.MouseMove(
+      x: offset.dx.round(),
+      y: offset.dy.round(),
+    );
+
+    connection.sendMessage(message.writeToBuffer());
   }
 
   void onPointerUp(int buttonId) {
     final button = mapButtonType(buttonId);
-    final message = MouseUp()..button = button;
-    connection.sendMessage(message);
+    final message = proto.MouseUp(button: button);
+    connection.sendMessage(message.writeToBuffer());
   }
 
   void onPointerDown(int buttonId) {
     final button = mapButtonType(buttonId);
-    final message = MouseDown()..button = button;
-    connection.sendMessage(message);
+    final message = proto.MouseDown(button: button);
+    connection.sendMessage(message.writeToBuffer());
   }
 
   void onPointerScroll(Offset delta) {
-    if (delta.dx != 0) {
-      final message = MouseScrollX()..offset = delta.dx.round();
-      connection.sendMessage(message);
-    }
+    final message = proto.MouseScroll(
+      dx: (delta.dx / 2).round(),
+      dy: (delta.dy / 2).round(),
+    );
+    connection.sendMessage(message.writeToBuffer());
+  }
 
-    if (delta.dy != 0) {
-      final message = MouseScrollY()..offset = delta.dy.round();
-      connection.sendMessage(message);
+  void onKeyUp(RawKeyUpEvent event) {
+    final char = event.character;
+    if (char != null) {
+      final message = proto.KeyUp(char: char.codeUnitAt(0));
+      connection.sendMessage(message.writeToBuffer());
+    }
+  }
+
+  void onKeyDown(RawKeyDownEvent event) {
+    final char = event.character;
+    if (char != null) {
+      final message = proto.KeyDown(char: char.codeUnitAt(0));
+      connection.sendMessage(message.writeToBuffer());
     }
   }
 }
 
-String mapButtonType(int button) {
+proto.MouseButton mapButtonType(int button) {
   switch (button) {
     case kPrimaryButton:
-      return 'l';
+      return proto.MouseButton.LEFT;
     case kSecondaryButton:
-      return 'r';
+      return proto.MouseButton.RIGHT;
     case kMiddleMouseButton:
-      return 'm';
+      return proto.MouseButton.MIDDLE;
     default:
-      return 'l';
+      return proto.MouseButton.LEFT;
   }
 }
 
@@ -179,45 +200,38 @@ class DesktopMessageHandler {
   final Vp9Player player;
   final void Function(int, int) onSize;
 
-  final _buffer = BytesBuilder(copy: false);
-  int? _pendingChunks;
-
   void onData(data) {
     if (data is Uint8List) {
-      handleBinary(data);
-    } else if (data is String) {
       handleMessage(data);
-    } else {
-      print('bad data: $data');
     }
   }
 
-  void handleMessage(String data) {
-    final message = RasMessage.parse(json.decode(data));
+  void handleMessage(Uint8List data) {
+    final message = proto.Message.fromBuffer(data);
 
-    if (message is VideoFrame) {
-      // player.updateSize(message.width, message.height);
-      onSize(message.width, message.height);
-      _pendingChunks = message.chunks;
+    if (message.hasVideoFrame()) {
+      final frame = message.videoFrame;
+      player.upload(frame.data as Uint8List);
+      onSize(frame.width, frame.height);
     }
   }
 
-  void handleBinary(Uint8List data) {
-    if (_pendingChunks == null) {
-      return;
-    }
+  // void handleBinary(Uint8List data) {
+  //   if (_pendingChunks == null) {
+  //     return;
+  //   }
 
-    if (_pendingChunks! > 0) {
-      _buffer.add(data);
-      _pendingChunks = _pendingChunks! - 1;
-    }
+  //   if (_pendingChunks! > 0) {
+  //     _buffer.add(data);
+  //     _pendingChunks = _pendingChunks! - 1;
+  //   }
 
-    if (_pendingChunks! <= 0) {
-      final frame = _buffer.takeBytes();
-      player.upload(frame);
-      _pendingChunks = null;
-    }
-  }
+  //   if (_pendingChunks! <= 0) {
+  //     final frame = _buffer.takeBytes();
+  //     player.upload(frame);
+  //     _pendingChunks = null;
+  //   }
+  // }
 }
 
 class DesktopConnection {
@@ -242,12 +256,12 @@ class DesktopConnection {
   }
 
   void _onError(error) {
+    print('_onError $error');
     state.value = DesktopConnectionState.aborted;
   }
 
-  void sendMessage(RasMessage message) {
-    final data = message.toJson();
-    channel.sink.add(json.encode(data));
+  void sendMessage(Uint8List message) {
+    channel.sink.add(message);
   }
 }
 

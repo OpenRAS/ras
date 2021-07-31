@@ -1,4 +1,5 @@
 mod message;
+mod proto;
 mod worker;
 
 use std::{sync::mpsc, thread, time::Duration};
@@ -6,12 +7,16 @@ use std::{sync::mpsc, thread, time::Duration};
 use enigo::{Enigo, KeyboardControllable, MouseControllable};
 use futures::{stream::SplitSink, FutureExt, SinkExt, StreamExt};
 
+use prost::{
+    bytes::{BufMut, Bytes},
+    Message,
+};
 use tokio::time;
 
 use warp::{ws, Filter};
 use worker::CaptureWorker;
 
-use crate::message::RasMessage;
+// use crate::message::RasMessage;
 
 fn main() {
     // tokio::runtime::Builder::new_current_thread()
@@ -41,7 +46,7 @@ async fn on_connect_desktop(socket: ws::WebSocket) {
 
     let capture_task = tokio::spawn(desktop_capture_task(ws_tx));
 
-    let (enigo_tx, enigo_rx) = mpsc::channel::<RasMessage>();
+    let (enigo_tx, enigo_rx) = mpsc::channel::<proto::Message>();
     thread::spawn(move || enigo_thread(enigo_rx));
 
     while let Some(message) = ws_rx.next().await {
@@ -54,8 +59,8 @@ async fn on_connect_desktop(socket: ws::WebSocket) {
                     break;
                 }
 
-                if message.is_text() {
-                    let message = RasMessage::from_str(message.to_str().unwrap());
+                if message.is_binary() {
+                    let message = proto::Message::decode(message.as_bytes()).unwrap();
                     enigo_tx.send(message).unwrap();
                 }
             }
@@ -68,15 +73,15 @@ async fn on_connect_desktop(socket: ws::WebSocket) {
     }
 }
 
-fn map_button_type(button: String) -> Option<enigo::MouseButton> {
-    match button.as_str() {
-        "l" => Some(enigo::MouseButton::Left),
-        "m" => Some(enigo::MouseButton::Middle),
-        "r" => Some(enigo::MouseButton::Right),
-        "sd" => Some(enigo::MouseButton::ScrollDown),
-        "su" => Some(enigo::MouseButton::ScrollUp),
-        "sl" => Some(enigo::MouseButton::ScrollLeft),
-        "sr" => Some(enigo::MouseButton::ScrollRight),
+fn map_button_type(button: i32) -> Option<enigo::MouseButton> {
+    match proto::MouseButton::from_i32(button).unwrap() {
+        proto::MouseButton::Left => Some(enigo::MouseButton::Left),
+        proto::MouseButton::Middle => Some(enigo::MouseButton::Middle),
+        proto::MouseButton::Right => Some(enigo::MouseButton::Right),
+        proto::MouseButton::ScrollDown => Some(enigo::MouseButton::ScrollDown),
+        proto::MouseButton::ScrollUp => Some(enigo::MouseButton::ScrollUp),
+        proto::MouseButton::ScrollLeft => Some(enigo::MouseButton::ScrollLeft),
+        proto::MouseButton::ScrollRight => Some(enigo::MouseButton::ScrollRight),
         _ => None,
     }
 }
@@ -95,68 +100,81 @@ async fn desktop_capture_task(mut tx: SplitSink<ws::WebSocket, ws::Message>) {
         let result = result.await;
         if let Ok(result) = result {
             for frame in result.frames {
-                let chunk_size = 65536;
-                let chunks = frame.chunks(chunk_size);
+                // let chunk_size = 65536;
+                // let chunks = frame.chunks(chunk_size);
 
-                let vf = RasMessage::VideoFrame {
-                    width: result.width,
-                    height: result.height,
-                    chunks: chunks.len(),
-                };
-                tx.send(ws::Message::text(vf.encode())).await.unwrap();
+                let vf = proto::message::Union::VideoFrame(proto::VideoFrame {
+                    width: result.width as _,
+                    height: result.height as _,
+                    data: frame,
+                });
 
-                for chunk in chunks {
-                    tx.send(ws::Message::binary(chunk)).await.unwrap();
-                }
+                // ::VideoFrame {
+                // };
+                tx.send(ws::Message::binary(message(vf))).await.unwrap();
             }
         }
     }
 }
 
-fn enigo_thread(rx: mpsc::Receiver<RasMessage>) {
+fn message(union: proto::message::Union) -> Vec<u8> {
+    let message = proto::Message { union: Some(union) };
+    let mut buffer = Vec::with_capacity(message.encoded_len());
+    message.encode(&mut buffer).unwrap();
+    buffer
+}
+
+fn enigo_thread(rx: mpsc::Receiver<proto::Message>) {
     let mut enigo = Enigo::new();
 
     while let Ok(message) = rx.recv() {
-        match message {
-            RasMessage::MouseMove { x, y } => {
-                enigo.mouse_move_to(x, y);
+        let union = message.union.unwrap();
+        match union {
+            proto::message::Union::MouseMove(message) => {
+                enigo.mouse_move_to(message.x as _, message.y as _);
             }
-            RasMessage::MouseUp { button } => {
-                if let Some(button) = map_button_type(button) {
+            proto::message::Union::MouseUp(message) => {
+                if let Some(button) = map_button_type(message.button) {
                     enigo.mouse_up(button);
                 }
             }
-            RasMessage::MouseDown { button } => {
-                if let Some(button) = map_button_type(button) {
+            proto::message::Union::MouseDown(message) => {
+                if let Some(button) = map_button_type(message.button) {
                     enigo.mouse_down(button);
                 }
             }
-            RasMessage::MouseClick { button } => {
-                if let Some(button) = map_button_type(button) {
+            proto::message::Union::MouseClick(message) => {
+                if let Some(button) = map_button_type(message.button) {
                     enigo.mouse_click(button);
                 }
             }
-            RasMessage::MouseScroll { offset_x, offset_y } => {
-                if offset_x != 0 {
-                    enigo.mouse_scroll_x(offset_x);
+            proto::message::Union::MouseScroll(message) => {
+                if message.dx != 0 {
+                    enigo.mouse_scroll_x(message.dx);
                 }
 
-                if offset_y != 0 {
-                    enigo.mouse_scroll_y(offset_y);
+                if message.dy != 0 {
+                    enigo.mouse_scroll_y(message.dy);
                 }
             }
-            RasMessage::KeyCharUp { char } => {
-                if let Some(char) = char::from_u32(char) {
-                    enigo.key_up(enigo::Key::Layout(char));
+            proto::message::Union::KeyUp(message) => match message.union.unwrap() {
+                proto::key_up::Union::Char(char) => {
+                    if let Some(char) = char::from_u32(char) {
+                        enigo.key_up(enigo::Key::Layout(char));
+                    }
                 }
-            }
-            RasMessage::KeyCharDown { char } => {
-                if let Some(char) = char::from_u32(char) {
-                    enigo.key_down(enigo::Key::Layout(char));
+                _ => {}
+            },
+            proto::message::Union::KeyDown(message) => match message.union.unwrap() {
+                proto::key_down::Union::Char(char) => {
+                    if let Some(char) = char::from_u32(char) {
+                        enigo.key_down(enigo::Key::Layout(char));
+                    }
                 }
-            }
+                _ => {}
+            },
             _ => {
-                eprintln!("bad message: {:?}", message);
+                eprintln!("bad message: {:?}", union);
             }
         }
     }
