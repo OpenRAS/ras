@@ -89,8 +89,10 @@ fn map_button_type(button: i32) -> Option<enigo::MouseButton> {
 async fn desktop_capture_task(mut tx: SplitSink<ws::WebSocket, ws::Message>) {
     let capture_worker = CaptureWorker::new();
 
+    let fps = 30;
+    let spf = Duration::from_millis(1000 / fps);
     // 20 fps
-    let mut interval = time::interval(Duration::from_millis(50));
+    let mut interval = time::interval(spf);
     interval.set_missed_tick_behavior(time::MissedTickBehavior::Skip);
 
     loop {
@@ -125,6 +127,8 @@ fn message(union: proto::message::Union) -> Vec<u8> {
 }
 
 fn enigo_thread(rx: mpsc::Receiver<proto::Message>) {
+    use proto::key_down;
+    use proto::key_up;
     use proto::message;
 
     let mut enigo = Enigo::new();
@@ -160,24 +164,75 @@ fn enigo_thread(rx: mpsc::Receiver<proto::Message>) {
                 }
             }
             message::Union::KeyUp(message) => match message.union.unwrap() {
-                proto::key_up::Union::Char(char) => {
+                key_up::Union::Char(char) => {
                     if let Some(char) = char::from_u32(char) {
                         enigo.key_up(enigo::Key::Layout(char));
                     }
                 }
-                _ => {}
+                key_up::Union::Key(key) => {
+                    if let Some(key) = proto::Key::from_i32(key) {
+                        if let Some(key) = map_key_type(key) {
+                            enigo.key_up(key);
+                        }
+                    }
+                }
             },
             message::Union::KeyDown(message) => match message.union.unwrap() {
-                proto::key_down::Union::Char(char) => {
+                key_down::Union::Char(char) => {
                     if let Some(char) = char::from_u32(char) {
                         enigo.key_down(enigo::Key::Layout(char));
                     }
                 }
-                _ => {}
+                key_down::Union::Key(key) => {
+                    if let Some(key) = proto::Key::from_i32(key) {
+                        if let Some(key) = map_key_type(key) {
+                            dbg!(key);
+                            enigo.key_down(key);
+                        }
+                    }
+                }
             },
             _ => {
                 eprintln!("bad message: {:?}", union);
             }
         }
+    }
+}
+
+fn map_key_type(key: proto::Key) -> Option<enigo::Key> {
+    match key {
+        proto::Key::Alt => Some(enigo::Key::Alt),
+        proto::Key::Backspace => Some(enigo::Key::Backspace),
+        proto::Key::CapsLock => Some(enigo::Key::CapsLock),
+        proto::Key::Control => Some(enigo::Key::Control),
+        proto::Key::Delete => Some(enigo::Key::Delete),
+        proto::Key::DownArrow => Some(enigo::Key::DownArrow),
+        proto::Key::End => Some(enigo::Key::End),
+        proto::Key::Escape => Some(enigo::Key::Escape),
+        proto::Key::F1 => Some(enigo::Key::F1),
+        proto::Key::F10 => Some(enigo::Key::F10),
+        proto::Key::F11 => Some(enigo::Key::F11),
+        proto::Key::F12 => Some(enigo::Key::F12),
+        proto::Key::F2 => Some(enigo::Key::F2),
+        proto::Key::F3 => Some(enigo::Key::F3),
+        proto::Key::F4 => Some(enigo::Key::F4),
+        proto::Key::F5 => Some(enigo::Key::F5),
+        proto::Key::F6 => Some(enigo::Key::F6),
+        proto::Key::F7 => Some(enigo::Key::F7),
+        proto::Key::F8 => Some(enigo::Key::F8),
+        proto::Key::F9 => Some(enigo::Key::F9),
+        proto::Key::Home => Some(enigo::Key::Home),
+        proto::Key::LeftArrow => Some(enigo::Key::LeftArrow),
+        proto::Key::Meta => Some(enigo::Key::Meta),
+        proto::Key::Option => Some(enigo::Key::Option),
+        proto::Key::PageDown => Some(enigo::Key::PageDown),
+        proto::Key::PageUp => Some(enigo::Key::PageUp),
+        proto::Key::Return => Some(enigo::Key::Return),
+        proto::Key::RightArrow => Some(enigo::Key::RightArrow),
+        proto::Key::Shift => Some(enigo::Key::Shift),
+        proto::Key::Space => Some(enigo::Key::Space),
+        proto::Key::Tab => Some(enigo::Key::Tab),
+        proto::Key::UpArrow => Some(enigo::Key::UpArrow),
+        _ => None,
     }
 }
