@@ -87,12 +87,15 @@ class _DesktopWindowState extends State<DesktopWindow> {
 
   @override
   Widget build(BuildContext context) {
+    // RawKeyboardListener
     return LayoutBuilder(builder: (context, contrains) {
       return Focus(
         autofocus: true,
-        onKey: (focus, event) {
-          if (event is RawKeyUpEvent) onKeyUp(event);
-          if (event is RawKeyDownEvent) onKeyDown(event);
+        onKeyEvent: (focus, event) {
+          // print('event ${event.runtimeType}');
+          // print('event ${event.logicalKey.debugName}');
+          if (event is KeyUpEvent) onKeyUp(event);
+          if (event is KeyDownEvent) onKeyDown(event);
           return KeyEventResult.handled;
         },
         child: Listener(
@@ -165,7 +168,15 @@ class _DesktopWindowState extends State<DesktopWindow> {
     connection.sendMessage(message);
   }
 
-  void onKeyUp(RawKeyUpEvent event) {
+  void onKeyUp(KeyUpEvent event) {
+    final key = mapKey(event.logicalKey);
+    if (key != null) {
+      print('key $key');
+      final message = proto.Message.create()..keyUp = proto.KeyUp(key: key);
+      connection.sendMessage(message);
+      return;
+    }
+
     final char = event.character;
     if (char != null) {
       final message = proto.Message.create()
@@ -174,7 +185,15 @@ class _DesktopWindowState extends State<DesktopWindow> {
     }
   }
 
-  void onKeyDown(RawKeyDownEvent event) {
+  void onKeyDown(KeyDownEvent event) {
+    final key = mapKey(event.logicalKey);
+    if (key != null) {
+      print('key $key');
+      final message = proto.Message.create()..keyDown = proto.KeyDown(key: key);
+      connection.sendMessage(message);
+      return;
+    }
+
     final char = event.character;
     if (char != null) {
       final message = proto.Message.create()
@@ -182,6 +201,54 @@ class _DesktopWindowState extends State<DesktopWindow> {
       connection.sendMessage(message);
     }
   }
+}
+
+final keyMap = {
+  LogicalKeyboardKey.alt: proto.Key.Alt,
+  LogicalKeyboardKey.altLeft: proto.Key.Alt,
+  LogicalKeyboardKey.altRight: proto.Key.Alt,
+  LogicalKeyboardKey.backspace: proto.Key.Backspace,
+  LogicalKeyboardKey.capsLock: proto.Key.CapsLock,
+  LogicalKeyboardKey.control: proto.Key.Control,
+  LogicalKeyboardKey.controlLeft: proto.Key.Control,
+  LogicalKeyboardKey.controlRight: proto.Key.Control,
+  LogicalKeyboardKey.delete: proto.Key.Delete,
+  LogicalKeyboardKey.end: proto.Key.End,
+  LogicalKeyboardKey.escape: proto.Key.Escape,
+  LogicalKeyboardKey.f1: proto.Key.F1,
+  LogicalKeyboardKey.f2: proto.Key.F2,
+  LogicalKeyboardKey.f3: proto.Key.F3,
+  LogicalKeyboardKey.f4: proto.Key.F4,
+  LogicalKeyboardKey.f5: proto.Key.F5,
+  LogicalKeyboardKey.f6: proto.Key.F6,
+  LogicalKeyboardKey.f7: proto.Key.F7,
+  LogicalKeyboardKey.f8: proto.Key.F8,
+  LogicalKeyboardKey.f9: proto.Key.F9,
+  LogicalKeyboardKey.f10: proto.Key.F10,
+  LogicalKeyboardKey.f11: proto.Key.F11,
+  LogicalKeyboardKey.f12: proto.Key.F12,
+  LogicalKeyboardKey.home: proto.Key.Home,
+  LogicalKeyboardKey.meta: proto.Key.Meta,
+  LogicalKeyboardKey.metaLeft: proto.Key.Meta,
+  LogicalKeyboardKey.metaRight: proto.Key.Meta,
+  // LogicalKeyboardKey.alt: proto.Key.Option,
+  LogicalKeyboardKey.pageDown: proto.Key.PageDown,
+  LogicalKeyboardKey.pageUp: proto.Key.PageUp,
+  LogicalKeyboardKey.enter: proto.Key.Return,
+  LogicalKeyboardKey.shift: proto.Key.Shift,
+  LogicalKeyboardKey.shiftLeft: proto.Key.Shift,
+  LogicalKeyboardKey.shiftRight: proto.Key.Shift,
+  LogicalKeyboardKey.space: proto.Key.Space,
+  LogicalKeyboardKey.tab: proto.Key.Tab,
+  LogicalKeyboardKey.arrowUp: proto.Key.UpArrow,
+  LogicalKeyboardKey.arrowDown: proto.Key.DownArrow,
+  LogicalKeyboardKey.arrowLeft: proto.Key.LeftArrow,
+  LogicalKeyboardKey.arrowRight: proto.Key.RightArrow,
+};
+
+proto.Key? mapKey(LogicalKeyboardKey key) {
+  print('mapKey ${key.keyLabel}');
+  return keyMap[key];
 }
 
 proto.MouseButton mapButtonType(int button) {
