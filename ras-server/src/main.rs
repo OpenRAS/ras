@@ -19,15 +19,15 @@ use worker::CaptureWorker;
 // use crate::message::RasMessage;
 
 fn main() {
-    // tokio::runtime::Builder::new_current_thread()
-    //     .enable_all()
-    //     .build()
-    //     .unwrap()
-    //     .block_on(async_main())
-
-    tokio::runtime::Runtime::new()
+    tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
         .unwrap()
         .block_on(async_main())
+
+    // tokio::runtime::Runtime::new()
+    //     .unwrap()
+    //     .block_on(async_main())
 }
 
 async fn async_main() {
@@ -47,7 +47,9 @@ async fn on_connect_desktop(socket: ws::WebSocket) {
     let capture_task = tokio::spawn(desktop_capture_task(ws_tx));
 
     let (enigo_tx, enigo_rx) = mpsc::channel::<proto::Message>();
-    thread::spawn(move || enigo_thread(enigo_rx));
+    let enigo = Enigo::new();
+
+    thread::spawn(move || enigo_thread(enigo, enigo_rx));
 
     while let Some(message) = ws_rx.next().await {
         // dbg!(&message);
@@ -126,12 +128,12 @@ fn message(union: proto::message::Union) -> Vec<u8> {
     buffer
 }
 
-fn enigo_thread(rx: mpsc::Receiver<proto::Message>) {
-    use proto::key_down;
-    use proto::key_up;
+fn enigo_thread(mut enigo: enigo::Enigo, rx: mpsc::Receiver<proto::Message>) {
     use proto::message;
+    use proto::key_up;
+    use proto::key_down;
 
-    let mut enigo = Enigo::new();
+    // let mut enigo = Enigo::new();
 
     while let Ok(message) = rx.recv() {
         let union = message.union.unwrap();
