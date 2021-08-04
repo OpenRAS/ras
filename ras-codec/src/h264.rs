@@ -3,6 +3,8 @@ use std::os::raw::{c_int, c_void};
 use std::ptr::{null, null_mut};
 use std::slice::from_raw_parts;
 
+use crate::I420ToARGB;
+
 #[derive(Debug)]
 pub enum Openh264Error {
     FailedCall(String),
@@ -203,6 +205,55 @@ impl Openh264Decoder {
             v: v.to_vec(),
         }))
     }
+
+    pub fn decode_to_argb(
+        &mut self,
+        data: &[u8],
+        result: &mut Openh264ArgbFrame,
+    ) -> Openh264Result<bool> {
+        let mut buf_info = SBufferInfo::default();
+        let mut output = [null_mut() as *mut u8; 3];
+
+        call_264!((**self.decoder).DecodeFrameNoDelay.unwrap()(
+            self.decoder,
+            data.as_ptr(),
+            data.len() as _,
+            output.as_mut_ptr(),
+            &mut buf_info,
+        ));
+
+        if buf_info.iBufferStatus == 0 {
+            return Ok(false);
+        }
+
+        let info = unsafe { buf_info.UsrData.sSystemBuffer };
+        // dbg!(info);
+
+        let width = info.iWidth;
+        let height = info.iHeight;
+        let y_stride = info.iStride[0];
+        let u_stride = info.iStride[1];
+        let v_stride = info.iStride[1];
+
+        result.width = width;
+        result.height = height;
+        result.data.resize((width * height * 4) as _, 0);
+
+        call_264!(I420ToARGB(
+            output[0],
+            y_stride,
+            output[1],
+            u_stride,
+            output[2],
+            v_stride,
+            result.data.as_mut_ptr(),
+            width, // output_stride
+            width,
+            height,
+        ));
+
+        Ok(true)
+    }
 }
 
 impl Drop for Openh264Decoder {
@@ -224,4 +275,21 @@ pub struct Openh264Frame {
     pub y_stride: i32,
     pub u_stride: i32,
     pub v_stride: i32,
+}
+
+#[derive(Debug)]
+pub struct Openh264ArgbFrame {
+    pub width: i32,
+    pub height: i32,
+    pub data: Vec<u8>,
+}
+
+impl Default for Openh264ArgbFrame {
+    fn default() -> Self {
+        Openh264ArgbFrame {
+            width: 0,
+            height: 0,
+            data: Vec::new(),
+        }
+    }
 }

@@ -1,6 +1,6 @@
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
-use codec::{Openh264Config, Openh264Decoder, Openh264Encoder};
+use codec::{Openh264ArgbFrame, Openh264Config, Openh264Decoder, Openh264Encoder};
 
 fn main() {
     let width = 32;
@@ -19,15 +19,21 @@ fn main() {
     let mut u = Vec::new();
     let mut v = Vec::new();
 
-    y.resize((width * height) as _, 33);
-    u.resize((width * height / 4) as _, 33);
-    v.resize((width * height / 4) as _, 33);
+    y.resize((width * height) as _, 0);
+    u.resize((width * height / 4) as _, 0);
+    v.resize((width * height / 4) as _, 0);
 
     let frame = encoder.encode(&mut y[..], &mut u[..], &mut v[..]).unwrap();
 
     let mut decoder = Openh264Decoder::new().unwrap();
-    let frame = decoder.decode(&frame[..]).unwrap().unwrap();
-    dbg!(frame);
+    // let frame = decoder.decode(&frame[..]).unwrap().unwrap();
+    // dbg!(frame);
+
+    let mut result = Openh264ArgbFrame::default();
+    let ok = decoder.decode_to_argb(&frame[..], &mut result).unwrap();
+    dbg!(ok);
+    dbg!(result);
+
 
     // let start = Instant::now();
 
