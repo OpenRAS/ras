@@ -14,6 +14,7 @@ dependencies = ["libyuv"]
 [dependencies]
 env-libvpx-sys = "5"
 num_cpus = "1.13"
+openh264-sys = { git = "https://github.com/OpenRAS/rust-openh264-sys.git" }
 
 [build-dependencies]
 vcpkg = "0.2.15"
