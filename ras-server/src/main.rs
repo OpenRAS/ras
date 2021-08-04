@@ -2,32 +2,25 @@
 mod proto;
 mod worker;
 
-use std::{sync::mpsc, thread, time::Duration};
+use std::{time::Duration};
 
-use enigo::{Enigo, KeyboardControllable, MouseControllable};
 use futures::{stream::SplitSink, FutureExt, SinkExt, StreamExt};
 
+use isim::ISim;
 use prost::{
-    bytes::{BufMut, Bytes},
     Message,
 };
-use tokio::time;
+use tokio::{sync::mpsc, time};
 
 use warp::{ws, Filter};
 use worker::CaptureWorker;
-
-// use crate::message::RasMessage;
 
 fn main() {
     tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
         .unwrap()
-        .block_on(async_main())
-
-    // tokio::runtime::Runtime::new()
-    //     .unwrap()
-    //     .block_on(async_main())
+        .block_on(async_main());
 }
 
 async fn async_main() {
@@ -43,13 +36,10 @@ async fn async_main() {
 
 async fn on_connect_desktop(socket: ws::WebSocket) {
     let (ws_tx, mut ws_rx) = socket.split();
-
     let capture_task = tokio::spawn(desktop_capture_task(ws_tx));
 
-    let (enigo_tx, enigo_rx) = mpsc::channel::<proto::Message>();
-    let enigo = Enigo::new();
-
-    thread::spawn(move || enigo_thread(enigo, enigo_rx));
+    let (isim_tx, isim_rx) = mpsc::unbounded_channel::<proto::Message>();
+    tokio::spawn(message_process_task(isim_rx));
 
     while let Some(message) = ws_rx.next().await {
         // dbg!(&message);
@@ -63,7 +53,7 @@ async fn on_connect_desktop(socket: ws::WebSocket) {
 
                 if message.is_binary() {
                     let message = proto::Message::decode(message.as_bytes()).unwrap();
-                    enigo_tx.send(message).unwrap();
+                    isim_tx.send(message).unwrap();
                 }
             }
             Err(e) => {
@@ -75,15 +65,15 @@ async fn on_connect_desktop(socket: ws::WebSocket) {
     }
 }
 
-fn map_button_type(button: i32) -> Option<enigo::MouseButton> {
+fn map_button_type(button: i32) -> Option<isim::MouseButton> {
     match proto::MouseButton::from_i32(button).unwrap() {
-        proto::MouseButton::Left => Some(enigo::MouseButton::Left),
-        proto::MouseButton::Middle => Some(enigo::MouseButton::Middle),
-        proto::MouseButton::Right => Some(enigo::MouseButton::Right),
-        proto::MouseButton::ScrollDown => Some(enigo::MouseButton::ScrollDown),
-        proto::MouseButton::ScrollUp => Some(enigo::MouseButton::ScrollUp),
-        proto::MouseButton::ScrollLeft => Some(enigo::MouseButton::ScrollLeft),
-        proto::MouseButton::ScrollRight => Some(enigo::MouseButton::ScrollRight),
+        proto::MouseButton::Left => Some(isim::MouseButton::Left),
+        proto::MouseButton::Middle => Some(isim::MouseButton::Middle),
+        proto::MouseButton::Right => Some(isim::MouseButton::Right),
+        proto::MouseButton::ScrollDown => Some(isim::MouseButton::ScrollDown),
+        proto::MouseButton::ScrollUp => Some(isim::MouseButton::ScrollUp),
+        proto::MouseButton::ScrollLeft => Some(isim::MouseButton::ScrollLeft),
+        proto::MouseButton::ScrollRight => Some(isim::MouseButton::ScrollRight),
         _ => None,
     }
 }
@@ -128,53 +118,49 @@ fn message(union: proto::message::Union) -> Vec<u8> {
     buffer
 }
 
-fn enigo_thread(mut enigo: enigo::Enigo, rx: mpsc::Receiver<proto::Message>) {
-    use proto::message;
-    use proto::key_up;
+async fn message_process_task(mut rx: mpsc::UnboundedReceiver<proto::Message>) {
     use proto::key_down;
+    use proto::key_up;
+    use proto::message;
 
-    // let mut enigo = Enigo::new();
+    // let mut isim = isim::new();
+    let mut isim = ISim::new();
 
-    while let Ok(message) = rx.recv() {
+    while let Some(message) = rx.recv().await {
         let union = message.union.unwrap();
         match union {
             message::Union::MouseMove(message) => {
-                enigo.mouse_move_to(message.x as _, message.y as _);
+                isim.mouse_move(message.x as _, message.y as _);
             }
             message::Union::MouseUp(message) => {
                 if let Some(button) = map_button_type(message.button) {
-                    enigo.mouse_up(button);
+                    isim.mouse_up(button);
                 }
             }
             message::Union::MouseDown(message) => {
                 if let Some(button) = map_button_type(message.button) {
-                    enigo.mouse_down(button);
+                    isim.mouse_down(button);
                 }
             }
             message::Union::MouseClick(message) => {
                 if let Some(button) = map_button_type(message.button) {
-                    enigo.mouse_click(button);
+                    isim.mouse_down(button);
+                    isim.mouse_up(button);
                 }
             }
             message::Union::MouseScroll(message) => {
-                if message.dx != 0 {
-                    enigo.mouse_scroll_x(message.dx);
-                }
-
-                if message.dy != 0 {
-                    enigo.mouse_scroll_y(message.dy);
-                }
+                isim.mouse_scroll(message.dx, message.dy);
             }
             message::Union::KeyUp(message) => match message.union.unwrap() {
                 key_up::Union::Char(char) => {
                     if let Some(char) = char::from_u32(char) {
-                        enigo.key_up(enigo::Key::Layout(char));
+                        isim.key_up(isim::Key::Char(char));
                     }
                 }
                 key_up::Union::Key(key) => {
                     if let Some(key) = proto::Key::from_i32(key) {
                         if let Some(key) = map_key_type(key) {
-                            enigo.key_up(key);
+                            isim.key_up(key);
                         }
                     }
                 }
@@ -182,14 +168,14 @@ fn enigo_thread(mut enigo: enigo::Enigo, rx: mpsc::Receiver<proto::Message>) {
             message::Union::KeyDown(message) => match message.union.unwrap() {
                 key_down::Union::Char(char) => {
                     if let Some(char) = char::from_u32(char) {
-                        enigo.key_down(enigo::Key::Layout(char));
+                        isim.key_down(isim::Key::Char(char));
                     }
                 }
                 key_down::Union::Key(key) => {
                     if let Some(key) = proto::Key::from_i32(key) {
                         if let Some(key) = map_key_type(key) {
                             dbg!(key);
-                            enigo.key_down(key);
+                            isim.key_down(key);
                         }
                     }
                 }
@@ -201,40 +187,40 @@ fn enigo_thread(mut enigo: enigo::Enigo, rx: mpsc::Receiver<proto::Message>) {
     }
 }
 
-fn map_key_type(key: proto::Key) -> Option<enigo::Key> {
+fn map_key_type(key: proto::Key) -> Option<isim::Key> {
     match key {
-        proto::Key::Alt => Some(enigo::Key::Alt),
-        proto::Key::Backspace => Some(enigo::Key::Backspace),
-        proto::Key::CapsLock => Some(enigo::Key::CapsLock),
-        proto::Key::Control => Some(enigo::Key::Control),
-        proto::Key::Delete => Some(enigo::Key::Delete),
-        proto::Key::DownArrow => Some(enigo::Key::DownArrow),
-        proto::Key::End => Some(enigo::Key::End),
-        proto::Key::Escape => Some(enigo::Key::Escape),
-        proto::Key::F1 => Some(enigo::Key::F1),
-        proto::Key::F10 => Some(enigo::Key::F10),
-        proto::Key::F11 => Some(enigo::Key::F11),
-        proto::Key::F12 => Some(enigo::Key::F12),
-        proto::Key::F2 => Some(enigo::Key::F2),
-        proto::Key::F3 => Some(enigo::Key::F3),
-        proto::Key::F4 => Some(enigo::Key::F4),
-        proto::Key::F5 => Some(enigo::Key::F5),
-        proto::Key::F6 => Some(enigo::Key::F6),
-        proto::Key::F7 => Some(enigo::Key::F7),
-        proto::Key::F8 => Some(enigo::Key::F8),
-        proto::Key::F9 => Some(enigo::Key::F9),
-        proto::Key::Home => Some(enigo::Key::Home),
-        proto::Key::LeftArrow => Some(enigo::Key::LeftArrow),
-        proto::Key::Meta => Some(enigo::Key::Meta),
-        proto::Key::Option => Some(enigo::Key::Option),
-        proto::Key::PageDown => Some(enigo::Key::PageDown),
-        proto::Key::PageUp => Some(enigo::Key::PageUp),
-        proto::Key::Return => Some(enigo::Key::Return),
-        proto::Key::RightArrow => Some(enigo::Key::RightArrow),
-        proto::Key::Shift => Some(enigo::Key::Shift),
-        proto::Key::Space => Some(enigo::Key::Space),
-        proto::Key::Tab => Some(enigo::Key::Tab),
-        proto::Key::UpArrow => Some(enigo::Key::UpArrow),
+        proto::Key::Alt => Some(isim::Key::Alt),
+        proto::Key::Backspace => Some(isim::Key::Backspace),
+        proto::Key::CapsLock => Some(isim::Key::CapsLock),
+        proto::Key::Control => Some(isim::Key::Control),
+        proto::Key::Delete => Some(isim::Key::Delete),
+        proto::Key::DownArrow => Some(isim::Key::DownArrow),
+        proto::Key::End => Some(isim::Key::End),
+        proto::Key::Escape => Some(isim::Key::Escape),
+        proto::Key::F1 => Some(isim::Key::F1),
+        proto::Key::F10 => Some(isim::Key::F10),
+        proto::Key::F11 => Some(isim::Key::F11),
+        proto::Key::F12 => Some(isim::Key::F12),
+        proto::Key::F2 => Some(isim::Key::F2),
+        proto::Key::F3 => Some(isim::Key::F3),
+        proto::Key::F4 => Some(isim::Key::F4),
+        proto::Key::F5 => Some(isim::Key::F5),
+        proto::Key::F6 => Some(isim::Key::F6),
+        proto::Key::F7 => Some(isim::Key::F7),
+        proto::Key::F8 => Some(isim::Key::F8),
+        proto::Key::F9 => Some(isim::Key::F9),
+        proto::Key::Home => Some(isim::Key::Home),
+        proto::Key::LeftArrow => Some(isim::Key::LeftArrow),
+        proto::Key::Meta => Some(isim::Key::Meta),
+        proto::Key::Option => Some(isim::Key::Option),
+        proto::Key::PageDown => Some(isim::Key::PageDown),
+        proto::Key::PageUp => Some(isim::Key::PageUp),
+        proto::Key::Return => Some(isim::Key::Return),
+        proto::Key::RightArrow => Some(isim::Key::RightArrow),
+        proto::Key::Shift => Some(isim::Key::Shift),
+        proto::Key::Space => Some(isim::Key::Space),
+        proto::Key::Tab => Some(isim::Key::Tab),
+        proto::Key::UpArrow => Some(isim::Key::UpArrow),
         _ => None,
     }
 }

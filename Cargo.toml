@@ -3,6 +3,7 @@
 members = [
     "ras-codec",
     "ras-flutter",
+    "ras-isim",
     "ras-server",
     "ras-util-macos",
 ]

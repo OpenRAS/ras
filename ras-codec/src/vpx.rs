@@ -125,7 +125,7 @@ impl VpxEncoder {
         c.rc_end_usage = vpx_rc_mode::VPX_CBR;
         // c.kf_min_dist = 0;
         // c.kf_max_dist = 999999;
-        // c.kf_mode = vpx_kf_mode::VPX_KF_DISABLED; // reduce bandwidth a lot
+        c.kf_mode = vpx_kf_mode::VPX_KF_FIXED; // reduce bandwidth a lot
         // vpx_kf_mode::
         
         /*

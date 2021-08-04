@@ -1,0 +1,13 @@
+[package]
+name = "isim"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-graphics = { version = "0.18.0", features = ["highsierra"] }
+objc = "0.2.7"
+cocoa = "0.24.0"

@@ -29,7 +29,8 @@ scrap = { path="../deps/scrap" }
 codec = { path="../ras-codec" }
 
 # Input simulation
-enigo = { path="../deps/enigo" }
+# enigo = { path="../deps/enigo" }
+isim = { path="../ras-isim" }
 
 # Protocol buffer
 prost = "0.6"

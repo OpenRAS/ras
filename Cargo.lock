@@ -524,20 +524,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
 
 [[package]]
-name = "enigo"
-version = "0.0.14"
-dependencies = [
- "core-graphics 0.18.0",
- "libc",
- "objc",
- "pkg-config",
- "serde",
- "serde_derive",
- "unicode-segmentation",
- "winapi 0.3.9",
-]
-
-[[package]]
 name = "env-libvpx-sys"
 version = "5.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1179,6 +1165,15 @@ dependencies = [
  "core-foundation 0.9.1",
  "leaky-cow",
  "libc",
+]
+
+[[package]]
+name = "isim"
+version = "0.1.0"
+dependencies = [
+ "cocoa",
+ "core-graphics 0.18.0",
+ "objc",
 ]
 
 [[package]]
@@ -1969,8 +1964,8 @@ name = "ras-server"
 version = "0.1.0"
 dependencies = [
  "codec",
- "enigo",
  "futures",
+ "isim",
  "parking_lot",
  "prost",
  "prost-build",

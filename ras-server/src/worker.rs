@@ -44,10 +44,10 @@ fn capture_worker(rx: mpsc::Receiver<CaptureJob>) {
         width: display.width() as _,
         height: display.height() as _,
         timebase: [1, 1000],
-        bitrate: 5000,
+        bitrate: 2000,
         codec: codec::VpxCodec::VP9,
-        rc_min_quantizer: 0,
-        rc_max_quantizer: 0,
+        rc_min_quantizer: 4,
+        rc_max_quantizer: 63,
         speed: 8,
         num_threads: 0,
     };
