@@ -17,3 +17,6 @@ env_logger = "0.8.3"
 libvpx = "0.1.1"
 env-libvpx-sys = "5.1.0"
 dcv-color-primitives = "0.2.0"
+
+# Video encode & decode
+codec = { path="../ras-codec" }

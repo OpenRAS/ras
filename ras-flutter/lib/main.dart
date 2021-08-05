@@ -48,17 +48,29 @@ class MainWindowState extends WindowState {
         title: Text('Flutter App'),
       ),
       body: Center(
-        // padding: EdgeInsets.all(20),
-        // child: Center(child: Text('Welcome to NativeShell!')),
-        
-        // child: Vp9Player(controller: controller),
-        child: TextButton(
-          child: Text('Link Start'),
-          onPressed: () {
-            Window.create(
-              DesktopWindowState.toInitData('ws://192.168.0.109:3030/desktop'),
-            );
-          },
+        child: Column(
+          children: [
+            TextButton(
+              child: Text('Link Start'),
+              onPressed: () {
+                Window.create(
+                  DesktopWindowState.toInitData(
+                    'ws://192.168.0.109:3030/desktop',
+                  ),
+                );
+              },
+            ),
+            TextButton(
+              child: Text('Link Start 1'),
+              onPressed: () {
+                Window.create(
+                  DesktopWindowState.toInitData(
+                    'ws://192.168.0.109:3031/desktop',
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );

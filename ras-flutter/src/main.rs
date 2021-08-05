@@ -1,10 +1,13 @@
-mod player;
+mod player_264;
+mod player_vp9;
 mod vp9;
 
 use nativeshell::{
     codec::Value,
     shell::{exec_bundle, register_observatory_listener, Context, ContextOptions, EngineHandle},
 };
+use player_264::FramePlayer264;
+use player_vp9::FramePlayerVp9;
 
 nativeshell::include_flutter_plugins!();
 
@@ -24,9 +27,11 @@ fn main() {
 
     let context = context.unwrap();
 
-    let channels =
-        player::FramePlayer::new(context.weak(), context.run_loop.borrow().new_sender());
-    let _channel = channels.register();
+    let player_vp9 = FramePlayerVp9::new(context.weak(), context.run_loop.borrow().new_sender());
+    let _player_vp9_channel = player_vp9.register();
+
+    let player_264 = FramePlayer264::new(context.weak(), context.run_loop.borrow().new_sender());
+    let _player_264_channel = player_264.register();
 
     context
         .window_manager

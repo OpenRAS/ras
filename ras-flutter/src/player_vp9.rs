@@ -21,7 +21,7 @@ use nativeshell::{
 
 use crate::vp9::Vp9Decoder;
 
-pub struct FramePlayer {
+pub struct FramePlayerVp9 {
     context: Context,
     decoder: Vp9Decoder,
     framebuffer: Vec<u8>,
@@ -29,7 +29,7 @@ pub struct FramePlayer {
     texture: Option<Texture<PixelBuffer>>,
 }
 
-impl FramePlayer {
+impl FramePlayerVp9 {
     pub fn new(context: Context, run_loop: RunLoopSender) -> Self {
         let decoder = Vp9Decoder::new();
         let framebuffer = Vec::with_capacity(1024 * 1024);
@@ -49,7 +49,7 @@ impl FramePlayer {
     }
 }
 
-impl MethodCallHandler for FramePlayer {
+impl MethodCallHandler for FramePlayerVp9 {
     fn on_method_call(
         &mut self,
         call: MethodCall<Value>,

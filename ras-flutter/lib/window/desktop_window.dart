@@ -92,8 +92,6 @@ class _DesktopWindowState extends State<DesktopWindow> {
       return Focus(
         autofocus: true,
         onKeyEvent: (focus, event) {
-          // print('event ${event.runtimeType}');
-          // print('event ${event.logicalKey.debugName}');
           if (event is KeyUpEvent) onKeyUp(event);
           if (event is KeyDownEvent) onKeyDown(event);
           return KeyEventResult.handled;
@@ -171,14 +169,15 @@ class _DesktopWindowState extends State<DesktopWindow> {
   void onKeyUp(KeyUpEvent event) {
     final key = mapKey(event.logicalKey);
     if (key != null) {
-      print('key $key');
+      print('key-up $key');
       final message = proto.Message.create()..keyUp = proto.KeyUp(key: key);
       connection.sendMessage(message);
       return;
     }
 
-    final char = event.character;
-    if (char != null) {
+    final char = event.logicalKey.keyLabel;
+    if (char.length == 1) {
+      print('char-up $char');
       final message = proto.Message.create()
         ..keyUp = proto.KeyUp(char: char.codeUnitAt(0));
       connection.sendMessage(message);
@@ -188,14 +187,15 @@ class _DesktopWindowState extends State<DesktopWindow> {
   void onKeyDown(KeyDownEvent event) {
     final key = mapKey(event.logicalKey);
     if (key != null) {
-      print('key $key');
+      print('key-down $key');
       final message = proto.Message.create()..keyDown = proto.KeyDown(key: key);
       connection.sendMessage(message);
       return;
     }
 
-    final char = event.character;
-    if (char != null) {
+    final char = event.logicalKey.keyLabel;
+    if (char.length == 1) {
+      print('char-down $char');
       final message = proto.Message.create()
         ..keyDown = proto.KeyDown(char: char.codeUnitAt(0));
       connection.sendMessage(message);
@@ -247,7 +247,6 @@ final keyMap = {
 };
 
 proto.Key? mapKey(LogicalKeyboardKey key) {
-  print('mapKey ${key.keyLabel}');
   return keyMap[key];
 }
 

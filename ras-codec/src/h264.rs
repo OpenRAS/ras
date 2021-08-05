@@ -206,11 +206,7 @@ impl Openh264Decoder {
         }))
     }
 
-    pub fn decode_to_argb(
-        &mut self,
-        data: &[u8],
-        result: &mut Openh264ArgbFrame,
-    ) -> Openh264Result<bool> {
+    pub fn decode_to_argb(&mut self, data: &[u8]) -> Openh264Result<Option<Openh264ArgbFrame>> {
         let mut buf_info = SBufferInfo::default();
         let mut output = [null_mut() as *mut u8; 3];
 
@@ -223,7 +219,7 @@ impl Openh264Decoder {
         ));
 
         if buf_info.iBufferStatus == 0 {
-            return Ok(false);
+            return Ok(None);
         }
 
         let info = unsafe { buf_info.UsrData.sSystemBuffer };
@@ -235,9 +231,8 @@ impl Openh264Decoder {
         let u_stride = info.iStride[1];
         let v_stride = info.iStride[1];
 
-        result.width = width;
-        result.height = height;
-        result.data.resize((width * height * 4) as _, 0);
+        let mut data = Vec::new();
+        data.resize((width * height * 4) as _, 0);
 
         call_264!(I420ToARGB(
             output[0],
@@ -246,13 +241,17 @@ impl Openh264Decoder {
             u_stride,
             output[2],
             v_stride,
-            result.data.as_mut_ptr(),
+            data.as_mut_ptr(),
             width, // output_stride
             width,
             height,
         ));
 
-        Ok(true)
+        Ok(Some(Openh264ArgbFrame {
+            width,
+            height,
+            data,
+        }))
     }
 }
 

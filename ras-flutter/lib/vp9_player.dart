@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-final _channel = MethodChannel('frameplayer_channel');
+final _channel = MethodChannel('frameplayer_264_channel');
 
 class Vp9Player {
   int? _textureId;
